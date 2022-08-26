@@ -1,11 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MyContext } from '../../App';
+import MealsPage from '../mealspage/MealsPage';
+
 import './cartPage.scss';
 
 const CartPage = () => {
   const { cart, setCart, user, setOrders, orders, meals } =
     useContext(MyContext);
+
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [placedOrder, setPlacedOrder] = useState(false);
@@ -50,7 +53,7 @@ const CartPage = () => {
     }
   }; */
 
-  const getAddress = (e) => {
+  /*   const getAddress = (e) => {
     e.preventDefault();
     let userAddress = {
       houseNo: e.target.hn.value,
@@ -61,7 +64,7 @@ const CartPage = () => {
     };
     console.log(userAddress);
     e.target.reset();
-  };
+  }; */
 
   /*  user enters card number, date, 3dig - click confirm order
   last 4 dig card is stored in database order
@@ -90,13 +93,13 @@ const CartPage = () => {
         deliveryAddress: {
           houseNo: sameAddress ? user.info.houseNo : e.target.hn.value,
           street: sameAddress ? user.info.street : e.target.stn.value,
-          zipCode: sameAddress ? user.info.zipCode : e.target.pc.value,
+          zipCode: sameAddress ? user.info.zipCode : e.target.zc.value,
           city: sameAddress ? user.info.city : e.target.city.value,
           phone: sameAddress ? user.info.phone : e.target.phone.value,
         },
       };
 
-      console.log(user);
+      console.log(newOrder);
 
       const settings = {
         method: 'POST',
@@ -111,6 +114,7 @@ const CartPage = () => {
         if (response.ok) {
           setOrders([...orders, result.data._id]);
           setCart([]);
+          navigate('/payment');
         } else {
           throw new Error(result.message);
         }
@@ -121,11 +125,7 @@ const CartPage = () => {
   };
 
   const changeAddress = (e) => {
-    if (!e.target.checked) {
-      setSameAddress(false);
-    } else {
-      setSameAddress(true);
-    }
+setSameAddress(e.target.checked)
   };
   // * Yohannes and Sameer modify the placeOrder function
 
@@ -171,7 +171,12 @@ const CartPage = () => {
         // <h3>last 3 dogits of card used for order:</h3>
         // <button>click here to return to meals</button>
         <div className="ordered-meals-container">
-          <h3>Your choice this week: </h3>
+          {(cart.length === 3) ? null : 
+          <h3 style={{color:"Red"}}>
+            Please Select 3 Separate Meals From Our Meal's Selection page to
+            proceed to Payment page{' '}
+          </h3>}
+          <h3>Your choices this week: </h3>
           {cart.map((meal) => {
             return (
               <div key={meal._id} className="ordered-meals">
@@ -208,33 +213,32 @@ const CartPage = () => {
       </div>
 
       <h3>{message}</h3>
-      <h3>Address: </h3>
-      {/*     <div>
-        {
-          userData &&
-          (
-            <div key={userData._id}>
-              <p>{userData.firstName} {userData.lastName}</p>
-              <p>{userData.street} {userData.houseNo}</p>
-              <p>{userData.city}</p>
-              <p>{userData.zipCode}</p>
-              <p>{userData.phone}</p>
-               </h3> <button  onClick={ addAddress}>Add Address</button> 
-            </div>
-          )
-             }
-      </div> */}
+
       <label>
-        Same as Registered Address:{' '}
+        <b>Delivery Address Is Same as Registered Address :</b>{' '}
         <input
+          style={{
+            width: '50px',
+            height: '25px',
+            cursor: 'pointer',
+            border: '3px solid black',
+          }}
           type={'checkbox'}
           defaultChecked
           onChange={changeAddress} /* name="check" */
         />
+        <br></br>{' '}
+        <p style={{ color: 'red' }}>
+          PLEASE NOTE : If your delivery address is Different than your
+          REGISTERED Address than please UNCHECK the Box Above and Fill New
+          Delivery Address:
+        </p>
+        <br></br>
       </label>
       <br></br>
       {!sameAddress && (
         <form onSubmit={placeOrder}>
+          <h3>New Delivery Address: </h3>
           <label>
             House No.
             <input
@@ -244,54 +248,40 @@ const CartPage = () => {
               min={1}
             />
           </label>
-          <br />
+          <br></br>
+
           <label>
             Street No.
             <input defaultValue={user.info.street} type="text" name="stn" />
           </label>
-          <br />
+          <br></br>
+
           <label>
             City.
             <input defaultValue={user.info.city} type="text" name="city" />
           </label>
-          <br />
+          <br></br>
+
           <label>
             Zip Code.
-            <input defaultValue={user.info.zipCode} type="number" name="pc" />
+            <input defaultValue={user.info.zipCode} type="number" name="zc" />
           </label>
           <br />
           <label>
             Phone
             <input defaultValue={user.info.phone} type="number" name="phone" />
           </label>
-          <br />
-          <button disabled={cart.length < 3}>checkout</button>
+          <br></br>
+          <button disabled={cart.length < 3}>
+            Confirm Your Selections And Proceed To Payment Page
+          </button>
         </form>
       )}
       {sameAddress && (
-        <>
-         <button onClick={placeOrder} disabled={cart.length < 3}>
-            checkout
-          </button> 
-        </>
+        <button onClick={placeOrder} disabled={cart.length < 3}>
+          Confirm Your Selections And Proceed To Payment Page
+        </button>
       )}
-
-      {/*  <h3>Payment: </h3> */}
-      {/* <form onSubmit={payment}> */}
-      {/*       <form >
-        <label>
-          card No.
-          <input type="number" name="hn" min={12} />
-        </label>
-        <label>
-          Month / year
-          <input type="number" name="stn" />
-        </label>
-        <label>
-          3 dig
-          <input type="number" name="stn" min={3} />
-        </label>
-      </form> */}
     </div>
   );
 };
