@@ -6,7 +6,7 @@ import { NavLink } from "react-router-dom";
 
 const LoginPage = () => {
   let navigate = useNavigate();
-  const { setUser, token, isLoggedIn, setIsLoggedIn } = useContext(MyContext);
+  const { setUser, token, setIsLoggedIn } = useContext(MyContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
@@ -103,6 +103,8 @@ const LoginPage = () => {
         Every Weekend we update our menu! Don't forget to visit our <br></br>
         <span><NavLink to="/meals"> Meals Page</NavLink></span> to discover new dishes from all around the world.
       </p>
+
+      <div> If you are not registered? Click here <NavLink className="registerLink" to="/register"> Register </NavLink></div>
 
       </div>
 

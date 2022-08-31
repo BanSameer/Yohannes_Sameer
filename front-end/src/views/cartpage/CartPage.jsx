@@ -1,12 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MyContext } from '../../App';
-import MealsPage from '../mealspage/MealsPage';
-
 import './cartPage.scss';
 
 const CartPage = () => {
-  const { cart, setCart, user, setOrders, orders, meals } =
+  const { cart, setCart, user, setOrders, orders, addToCart, removeFromCart, changeQuantity } =
     useContext(MyContext);
 
   const navigate = useNavigate();
@@ -24,62 +22,12 @@ const CartPage = () => {
     setTotal(sum);
   }, [cart]);
 
-  const changeQuantity = (e, meal) => {
-    const item = cart.find((elem) => elem._id === meal._id);
-    item.quantity = Number(e.target.value);
-    setCart([...cart]);
-    console.log(item);
-  };
-  const addToCart = (meal) => {
-    let item = cart.find((elem) => elem._id === meal._id);
-    if (item) {
-      item.quantity += 1;
-      setCart([...cart]);
-    } else {
-      if (cart.length + 1 > 3) {
-        alert('Reached Maximum Quantity of Meals');
-        return;
-      }
-      setCart([...cart, { ...meal, quantity: 1 }]);
-    }
-  };
-  /*   const reduceToCart = (meal) => {
-    let item = cart.find((elem) => elem._id === meal._id);
-    if (item) {
-      item.quantity -= 1;
-      setCart([...cart]);
-    }
-      setCart([...cart, { ...meal, quantity: 1 }]);
-    }
-  }; */
-
-  /*   const getAddress = (e) => {
-    e.preventDefault();
-    let userAddress = {
-      houseNo: e.target.hn.value,
-      street: e.target.stn.value,
-      zipCode: e.target.pc.value,
-      city: e.target.city.value,
-      phone: e.target.phone.value,
-    };
-    console.log(userAddress);
-    e.target.reset();
-  }; */
-
-  /*  user enters card number, date, 3dig - click confirm order
-  last 4 dig card is stored in database order
-  stripe sandbox to process  payment*/
-  /*  const payment = ((e) => {
-    e.preventDefault()
-    ??setCardNum =cardNumber.slice(-4)
-  })
- */
   // * Yohannes and Sameer modify the placeOrder function
 
   // ===========================================================================
   // The customer placing an order in the front end and post it in the back end
   //============================================================================
-  const placeOrder = async (e) => {
+  const submitOrder = async (e) => {
     e.preventDefault();
     if (!user) {
       navigate('/register');
@@ -125,7 +73,7 @@ const CartPage = () => {
   };
 
   const changeAddress = (e) => {
-setSameAddress(e.target.checked)
+    setSameAddress(e.target.checked);
   };
   // * Yohannes and Sameer modify the placeOrder function
 
@@ -138,16 +86,17 @@ setSameAddress(e.target.checked)
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
     /* const selectedMealId = event.target.parentElement.id;
+
     const cartItem = cart.filter((cartItem) => cartItem._id != selectedMealId)
     setCart(cartItem)
     const settings = {
-        method: "DELETE"
-      };
+      method: "DELETE"
+    };
 
-      console.log(selectedMealId)
+    console.log(selectedMealId)
 
-      const response = await fetch(`http://localhost:3001/orders/${selectedMealId}`, settings);
-      const result = await response.json();
+    const response = await fetch(`http://localhost:3001/orders/${selectedMealId}`, settings);
+    const result = await response.json();
 
       try{
         if(response.ok){
@@ -159,23 +108,50 @@ setSameAddress(e.target.checked)
         alert(err.message)
       } */
   };
-  console.log(cart);
 
+
+  // ===========================================================================
+  // Customer clicks pay on success page to load stripe payment (order already in database)
+  //============================================================================
+  const stripe = async () => {
+    const pay = {
+      total: total,
+    };
+    console.log(pay);
+    const settings = {
+      method: 'POST',
+      body: JSON.stringify(pay),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    const response = await fetch(`http://localhost:3001/payment`, settings);
+    const result = await response.json();
+    try {
+      if (response.ok) {
+        //STRIPE - taken from Youtube tutorial
+        // .then(({ url }) => {   console.log(url) })
+        // .then(({ url }) => {   window.location = url })
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+  //ternary operator: 1. placed order===true - show success page | 2. placed order===false - show delete meals option
   return (
     <div>
       {placedOrder ? (
         <h2>Thanks for placing order: </h2>
       ) : (
-        // <h3>This is your choice of meals:</h3>
-        // <h3>order address:</h3>
-        // <h3>last 3 dogits of card used for order:</h3>
-        // <button>click here to return to meals</button>
         <div className="ordered-meals-container">
-          {(cart.length === 3) ? null : 
-          <h3 style={{color:"Red"}}>
-            Please Select 3 Separate Meals From Our Meal's Selection page to
-            proceed to Payment page{' '}
-          </h3>}
+          {cart.length === 3 ? null : (
+            <h3 style={{ color: 'Red' }}>
+              Please Select 3 Separate Meals From Our Meal's Selection page to
+              proceed to Payment page{' '}
+            </h3>
+          )}
           <h3>Your choices this week: </h3>
           {cart.map((meal) => {
             return (
@@ -185,14 +161,18 @@ setSameAddress(e.target.checked)
                   <img src={meal.img} width="100" alt="" />{' '}
                 </div>
                 <h4>{meal.mealName}</h4>
-                <p>{meal.price}€</p>
-                <div>
+                <div className="add-reduce-quantity-container">
+                <div><button onClick={() => addToCart(meal)}>+</button></div>
+                <div className="value-input-container">
                   <input
                     type="text"
-                    defaultValue={meal.quantity}
+                    value={meal.quantity}
                     onChange={(e) => changeQuantity(e, meal)}
                   />
                 </div>
+                <div><button onClick={() => removeFromCart(meal)}>-</button></div>
+              </div>
+                <p>{meal.price}€</p>
                 <div
                   id={meal._id}
                   onClick={() => deleteSingleOrderedMeal(meal)}
@@ -237,7 +217,7 @@ setSameAddress(e.target.checked)
       </label>
       <br></br>
       {!sameAddress && (
-        <form onSubmit={placeOrder}>
+        <form onSubmit={submitOrder}>
           <h3>New Delivery Address: </h3>
           <label>
             House No.
@@ -278,7 +258,7 @@ setSameAddress(e.target.checked)
         </form>
       )}
       {sameAddress && (
-        <button onClick={placeOrder} disabled={cart.length < 3}>
+        <button onClick={submitOrder} disabled={cart.length < 3}>
           Confirm Your Selections And Proceed To Payment Page
         </button>
       )}

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const NavTest = (props) => {
   let navigate = useNavigate();
-  const{user,setUser,setIsLoggedIn,setToken,setCart}=useContext(MyContext);
+  const{user,setUser,setIsLoggedIn,setToken,setCart,isLoggedIn}=useContext(MyContext);
   const [isOpen, setIsOpen] = useState(false);
   const [ logOutButton, setLogOutButton ]=useState(false)
 
@@ -44,18 +44,18 @@ const logOut=()=>{
         <div className="buttonWrapper">
           <NavLink to="/login">
             <button
-              className={props.isLogged === true ? "hide" : "logInButton"}
+              className={isLoggedIn === true ? "hide" : "logInButton"}
             >
               Login
             </button>
           </NavLink>
           <NavLink to="/register">
-            <button className={props.isLogged === true ? "hide" : "regButton" }>
-              {" "}
+            <button className={isLoggedIn === true ? "hide" : "regButton" }>
               Register
             </button>
           </NavLink>
         </div>
+
       </div>
       {/* toggle area */}
       <div
@@ -66,13 +66,13 @@ const logOut=()=>{
       </div>
 
       <div className={props.isLogged === true ?  "showUserIcon" : "hide" }>
-            <p>Hello {user && user.info.firstName} </p>
+            <p>Hello {user && user.firstName} </p>
            
             <div >
-            <AccountCircleIcon onClick={()=>{setLogOutButton(!logOutButton)}}style={{ fontSize: 50, cursor:"pointer" }} />
+            <AccountCircleIcon onClick={()=>{setLogOutButton(!logOutButton)}} style={{ fontSize: 50, cursor:"pointer" }} />
               <p onClick={logOut} style={{position:"absolute", right:"50px", width:"120px", padding:"5px", color:"white", backgroundColor:"gray",textAlign:"center", display:logOutButton ?"block" : "none", cursor:"pointer"}}>Log-Out</p>
             </div>
-          </div>
+      </div>
     </div>
   );
 };
