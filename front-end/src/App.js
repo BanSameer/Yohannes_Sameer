@@ -4,11 +4,13 @@ import Navigation from "./components/globalComponents/navbar/Navigation";
 import LoginPage from "./views/loginpage/LoginPage";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import HowItWorksPage from "./views/howitworks/HowItWorksPage";
-import SupportPage from "./views/sustainability/Sustainability";
+import SustainabilityPage from "./views/sustainability/Sustainability";
 import CommunityPage from "./views/community/CommunityPage";
 import MealsPage from "./views/mealspage/MealsPage";
 import React, { useState, useEffect } from "react";
 import CartPage from "./views/cartpage/CartPage";
+import StripeSuccessPage from "./views/stripe/stripeSuccess";
+import StripeCancelPage from "./views/stripe/stripeCancel";
 import Footer from "./components/globalComponents/footer/Footer";
 import './App.scss';
 
@@ -25,6 +27,10 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [token, setToken] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [hideSidemenu, setHideSideMenu] = useState(true);
+
+
 
   //======================================================================
   // UseEffect used to handle user and meal data functions 
@@ -97,15 +103,34 @@ function App() {
  const addToCart = (meal) => {
     let item = cart.find((elem) => elem._id === meal._id);
     
-    if (item) {
+    if (item) {const preCheck = item.quantity + 1;
+      if(preCheck <= 5){
       item.quantity += 1;
       setCart([...cart]);
+    }else{
+      alert("Reached maximum ")
+    }
     } else {if ((cart.length +1) > 3 ){
       alert('Reached Maximum Quantity of Meals')
       return 
     }
       setCart([...cart, { ...meal, quantity: 1 }]);
     }
+  };
+
+  //===================================================
+  // This overwrite the fetch
+  //===================================================
+  const { fetch: originalFetch } = window;
+  window.fetch = async (...args) => {
+    let [resource, config] = args;
+    let response = await originalFetch(resource, config);
+    if (!response.ok && response.status === 401) {
+      // 401 error handling
+      // sign out the user
+      return Promise.reject(response);
+    }
+    return response;
   };
 
   // =======================================================================
@@ -115,8 +140,13 @@ function App() {
     let item = cart.find((elem) => elem._id === meal._id);
     
     if (item) {
-      item.quantity -= 1;
+      const preCheck = item.quantity - 1;
+      if(preCheck > 0){
+          item.quantity -= 1;
       setCart([...cart]);
+      }else{
+        alert("Minimum Quantity is 1")
+      }
     } 
   };
 
@@ -165,12 +195,14 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/howitworks" element={<HowItWorksPage />} />
-            <Route path="/support" element={<SupportPage />} />
+            <Route path="/sustainability" element={<SustainabilityPage />} />
             <Route path="/meals" element={<MealsPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/stripe-success" element={<StripeSuccessPage />} />
+            <Route path="/stripe-cancel" element={<StripeCancelPage />} />
           </Routes>
           <Footer />
         </HashRouter>

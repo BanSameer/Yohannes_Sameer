@@ -3,12 +3,15 @@ import { MyContext } from "../../App";
 import ReactStars from "react-rating-stars-component";
 import DeregisterUser from "../../components/DeregisterUser";
 import { useNavigate } from 'react-router-dom';
-import UserData from "../../components/UserData"
+import UserData from "../../components/UserData";
+import TotalOrder from "../../components/TotalOrder";
+import TotalOrderPerCustomer from "../../components/TotalOrderPerCustomer";
 import "./mealsPage.scss";
 
 const MealsPage = () => {
   const { meals, user, cart, setCart, isLoggedIn, deleteUserAccount, isAdmin, token } = useContext(MyContext);
   const navigate = useNavigate();
+ 
   const addToCart = (meal) => {
     let item = cart.find((elem) => elem._id === meal._id);
     
@@ -31,13 +34,17 @@ const MealsPage = () => {
 
   return (
     <div>
-      <DeregisterUser deleteUserAccount={deleteUserAccount} />
-      {isAdmin && <UserData token={token} user={user.id} /> } 
-      
       <div>
+      {isAdmin && <DeregisterUser token={token} userId={user.id} deleteUserAccount={deleteUserAccount} />}
+        {isAdmin && <UserData token={token} userId={user.id} />}
+        {isAdmin && <TotalOrder token={token} userId={user.id} />}
+        {isAdmin && <TotalOrderPerCustomer token={token} userId={user.id} />} 
+      </div>
+      {/* <div>
         <h2>Welcome {user && user.info.firstName}</h2>
       </div>
-      <h2>Meals page</h2>
+      <h2>Meals page</h2>  */}
+      <p>Select 3 meals and proceed to cart for checkout</p>
       <div className="meals-container">
         {meals.map((meal) => {
           return (
@@ -46,13 +53,13 @@ const MealsPage = () => {
               <h2>{meal.mealName}</h2>
               <p>{meal.description}</p>
               <h3>
-                <strong>$ {meal.price}</strong>
+                <strong>€ {meal.price}</strong>
               </h3>
               <ReactStars
                 count={5}
                 value={meal.rating}
                 size={24}
-                half={true}
+                isHalf={true}
                 activeColor="yellow"
               />
               <div>
